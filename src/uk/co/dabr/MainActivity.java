@@ -3,24 +3,94 @@ package uk.co.dabr;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Picture;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.webkit.WebView.PictureListener;
+import android.webkit.WebViewClient;
 import android.os.Build;
 
-public class MainActivity extends ActionBarActivity {
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+public class MainActivity extends Activity {
+
+	private WebView wv;
+	private boolean loading = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		wv = new WebView(this);
+		setContentView(wv);
+		wv.setWebViewClient(new WebViewClient() {
+			@Override
+			public void onReceivedError(WebView view, int errorCode,
+					String description, String failingUrl) {
+				// TODO Auto-generated method stub
+				Log.e("dabr", description);
+				super.onReceivedError(view, errorCode, description, failingUrl);
+			}
 
-		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
+			@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+			@Override
+			public void onPageStarted(WebView view, String url, Bitmap favicon) {
+				loading = true;
+				getActionBar().setTitle(url);
+				getActionBar().show();
+				super.onPageStarted(view, url, favicon);
+			}
+
+			@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+			@Override
+			public void onPageFinished(WebView view, String url) {
+				loading = false;
+				getActionBar().setTitle(view.getTitle());
+				getActionBar().hide();
+				super.onPageFinished(view, url);
+			}
+
+			@Override
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+		});
+		wv.setPictureListener(new PictureListener() {
+
+			@Override
+			public void onNewPicture(WebView arg0, Picture arg1) {
+				loading = true;
+
+			}
+		});
+		wv.getSettings().setJavaScriptEnabled(true);
+		wv.loadUrl(getResources().getString(R.string.home));
+
+	}
+
+	@Override
+	public void onBackPressed() {
+		if (loading) {
+			wv.stopLoading();
+			loading = false;
+		} else {
+			if (wv.canZoomOut()) {
+				wv.zoomOut();
+			} else {
+				if (wv.canGoBack()) {
+					wv.goBack();
+				} else {
+					finish();
+				}
+			}
 		}
 	}
 
@@ -42,6 +112,23 @@ public class MainActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public boolean onMenuOpened(int featureId, Menu menu) {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+			getActionBar().show();
+		}
+		return super.onMenuOpened(featureId, menu);
+	}
+
+	@Override
+	public void onOptionsMenuClosed(Menu menu) {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB
+				&& !loading) {
+			getActionBar().hide();
+		}
+		super.onOptionsMenuClosed(menu);
 	}
 
 	/**
