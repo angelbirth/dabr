@@ -2,7 +2,9 @@
 <resources>
 
     <string name="app_name">dabr</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="home">http://dabr.co.uk</string>
+    <string name="mentions">http://dabr.co.uk/replies</string>
+    <string name="directs">http://dabr.co.uk/directs</string>
 
 </resources>
